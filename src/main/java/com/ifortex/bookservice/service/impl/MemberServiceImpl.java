@@ -6,7 +6,6 @@ import com.ifortex.bookservice.model.Book;
 import com.ifortex.bookservice.model.Member;
 import com.ifortex.bookservice.repository.MemberRepository;
 import com.ifortex.bookservice.service.MemberService;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -17,6 +16,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class MemberServiceImpl implements MemberService {
 
+  private static final String GENRE_ROMANCE = "Romance";
   private final MemberRepository memberRepository;
 
   /**
@@ -31,7 +31,7 @@ public class MemberServiceImpl implements MemberService {
         .sorted(
             Comparator.comparing((Member member) -> {
                   var books = member.getBorrowedBooks().stream()
-                      .filter(book -> book.getGenres().contains("Romance"))
+                      .filter(book -> book.getGenres().contains(GENRE_ROMANCE))
                       .sorted(Comparator.comparing(Book::getPublicationDate))
                       .toList();
                   return books.isEmpty() ? LocalDateTime.MAX : books.get(0).getPublicationDate();
@@ -49,13 +49,9 @@ public class MemberServiceImpl implements MemberService {
   @Override
   public List<Member> findMembers() {
     var members = memberRepository.findAll();
-    var latestDate = LocalDate.of(2024, 1, 1);
-    var earliestDate = LocalDate.of(2022, 12, 31);
     return members.stream()
         .filter(member ->
-            member.getBorrowedBooks().isEmpty()
-                && latestDate.isAfter(member.getMembershipDate().toLocalDate())
-                && earliestDate.isBefore(member.getMembershipDate().toLocalDate())
-        ).toList();
+            member.getBorrowedBooks().isEmpty() && member.getMembershipDate().getYear() == 2023)
+        .toList();
   }
 }
